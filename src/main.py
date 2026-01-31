@@ -101,7 +101,18 @@ def main():
         
         dialog.show() # Non-blocking
         
-    timer_engine.work_completed.connect(open_log_dialog)
+    
+    def open_log_dialog_wrapper(mode="logging"):
+        # Check if work logging is enabled
+        current_s = settings.get_current_settings()
+        # Default to True if not present (though it should be via defaults)
+        if not current_s.get('work_log_enabled', False) and mode == "logging":
+            return
+
+        open_log_dialog(mode)
+
+    # Connect to wrapper instead of direct dialog
+    timer_engine.work_completed.connect(lambda: open_log_dialog_wrapper("logging"))
 
     # 3. Settings -> Timer & Audio
     def handle_settings_change(settings_dict):
@@ -180,6 +191,21 @@ def main():
         
     tray_manager.toggle_mute_requested.connect(handle_tray_mute_toggle)
     
+    # Tray -> Work Log Toggle
+    def handle_tray_work_log_toggle(enabled):
+        # 1. Update Settings Persistence
+        # Ensure SettingsWindow internal state is updated so get_current_settings() includes it
+        settings.set_work_log_enabled(enabled)
+        
+        current_s = settings.get_current_settings()
+        from utils.settings_manager import SettingsManager
+        SettingsManager.save_settings(current_s)
+        
+        # 2. Update Tray State (optimization: tray likely triggered this, but good to be explicit)
+        tray_manager.update_work_log_state(enabled)
+        
+    tray_manager.toggle_work_log_requested.connect(handle_tray_work_log_toggle)
+    
     # Tray -> Review Logs
     def show_log_viewer():
         log_viewer.showNormal()
@@ -225,6 +251,12 @@ def main():
     audio_manager.set_break_volume(current_settings['break_volume'])
     audio_manager.toggle_mute(initial_mute_state)
     tray_manager.update_mute_state(initial_mute_state)
+    
+
+    
+    # Initial Work Log State
+    initial_work_log_state = current_settings.get('work_log_enabled', False)
+    tray_manager.update_work_log_state(initial_work_log_state)
     
     # Initial Sync (Settings -> Widget)
     # Ensure startup registry matches our default (True) if not already set

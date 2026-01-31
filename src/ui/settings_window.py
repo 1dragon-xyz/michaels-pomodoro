@@ -23,7 +23,11 @@ class SettingsWindow(QWidget):
             self.setWindowIcon(QIcon(icon_path))
         
         # Load persisted settings
+        # Load persisted settings
         self.current_settings = SettingsManager.load_settings()
+        
+        # Internal State for non-UI settings
+        self.work_log_enabled = self.current_settings.get('work_log_enabled', False)
         
         # Main Layout
         layout = QVBoxLayout(self)
@@ -225,8 +229,12 @@ class SettingsWindow(QWidget):
             "work_volume": self.work_vol_slider['slider'].value(),
             "break_volume": self.break_vol_slider['slider'].value(),
             # "ghost_mode": self.ghost_mode_check.isChecked(),
-            "run_at_startup": self.startup_check.isChecked()
+            "run_at_startup": self.startup_check.isChecked(),
+            "work_log_enabled": self.work_log_enabled
         }
+    
+    def set_work_log_enabled(self, enabled):
+        self.work_log_enabled = enabled
 
     def emit_settings(self):
         settings = self.get_current_settings()

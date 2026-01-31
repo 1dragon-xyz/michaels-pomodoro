@@ -7,6 +7,7 @@ class TrayIconManager(QObject):
     show_settings_requested = Signal()
     toggle_ghost_requested = Signal(bool)
     toggle_mute_requested = Signal(bool)
+    toggle_work_log_requested = Signal(bool)
     review_logs_requested = Signal()
     quit_requested = Signal()
 
@@ -73,6 +74,12 @@ class TrayIconManager(QObject):
         self.mute_action.triggered.connect(lambda c: self.toggle_mute_requested.emit(c))
         self.menu.addAction(self.mute_action)
         
+        # Work Log Toggle
+        self.work_log_action = QAction("Enable Work Logs", self.menu)
+        self.work_log_action.setCheckable(True)
+        self.work_log_action.triggered.connect(lambda c: self.toggle_work_log_requested.emit(c))
+        self.menu.addAction(self.work_log_action)
+        
         # Review Logs
         self.review_action = QAction("Review Logs", self.menu)
         self.review_action.triggered.connect(self.review_logs_requested.emit)
@@ -118,6 +125,12 @@ class TrayIconManager(QObject):
         self.mute_action.blockSignals(True)
         self.mute_action.setChecked(is_muted)
         self.mute_action.blockSignals(False)
+
+    def update_work_log_state(self, enabled):
+        """Update the menu check state for work logs."""
+        self.work_log_action.blockSignals(True)
+        self.work_log_action.setChecked(enabled)
+        self.work_log_action.blockSignals(False)
 
     def on_tray_activated(self, reason):
         if reason == QSystemTrayIcon.Trigger:

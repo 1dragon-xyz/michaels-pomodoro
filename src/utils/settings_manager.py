@@ -18,7 +18,8 @@ class SettingsManager:
         "break_volume": 50,
         "run_at_startup": True,
         "timer_style": "orange",
-        "orange_opacity": 0.25
+        "orange_opacity": 0.25,
+        "work_log_enabled": False
     }
 
     @staticmethod
